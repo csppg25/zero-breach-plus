@@ -1,4 +1,19 @@
-# Zero Breach
+# Zero Breach Plus
+
+> **Unofficial fork.** This is a personal fork of
+> [interplains/zero-breach](https://github.com/interplains/zero-breach),
+> not the official project and not endorsed by it. It keeps the original's
+> read-only, offline, no-dependency design and all of its licences and
+> attribution, and adds two changes:
+>
+> 1. **Browser:** skips the LevelDB `LOCK` sentinel, so a store that is locked
+>    because the browser is open no longer shows up as a false "gap".
+> 2. **Standalone:** a `--self-check` flag that prints this file's SHA-256 and,
+>    when a `SHA256SUMS.txt` sits beside it, reports MATCH / MISMATCH.
+>
+> Because the code differs, **the SHA-256 of this fork's `zero-breach.py` is
+> different from the official release's** — verify it against *this* repo's
+> checksums, not upstream's. For the official, upstream tool, use the link above.
 
 > Release v0.1.8 corrects the version the download reports (v0.1.7 shipped
 > reporting itself as 0.1.6) and refuses network paths given to `--iocs`/`--json`
