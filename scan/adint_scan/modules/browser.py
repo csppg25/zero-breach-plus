@@ -913,6 +913,18 @@ def run(ctx) -> ModuleResult:
         for dirpath, _dirs, files in walk_local(root, onerror=onerror):
             for fn in files:
                 full = os.path.join(dirpath, fn)
+                # LevelDB (Local Storage / Session Storage / IndexedDB) keeps an
+                # exclusive OS lock on its zero-byte LOCK sentinel while the
+                # browser is running, so opening it raises PermissionError
+                # (errno 13) on Windows. The file never holds searchable bytes,
+                # so a failed read of it is a FALSE gap, not a missed check: it
+                # would make a fully scanned profile look incompletely searched.
+                # Skip it outright - this does not weaken detection, because
+                # there is nothing in a lock sentinel to match an indicator
+                # against. Every real data file (.ldb/.log/MANIFEST/CURRENT) is
+                # left to the normal read path below.
+                if fn == "LOCK":
+                    continue
                 try:
                     problem = path_problem(full)
                     if problem:
