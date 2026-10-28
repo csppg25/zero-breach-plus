@@ -1,0 +1,67 @@
+{
+  "type": "bundle",
+  "id": "bundle--901ca39d-5522-4435-ad55-a1e05162e568",
+  "objects": [
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--294ec63a-c449-5439-83fb-942185697747",
+      "created": "2026-10-18T00:00:00.000Z",
+      "modified": "2026-10-18T00:00:00.000Z",
+      "name": "adint-scan IOC set",
+      "identity_class": "system",
+      "description": "Curated from public reporting. NOT affiliated with, and NOT endorsed by, The Citizen Lab or Confiant."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--75526ba0-abba-56bc-af06-770a39688ab3",
+      "created": "2026-10-18T00:00:00.000Z",
+      "modified": "2026-10-18T00:00:00.000Z",
+      "name": "Candiru",
+      "is_family": true,
+      "description": "Mercenary spyware from the Israeli vendor Candiru (US-blacklisted since 2021), delivered zero-click through Discover-Tech's Controlium ad platform in the AdFection campaign.",
+      "external_references": [
+        {
+          "source_name": "The Citizen Lab",
+          "description": "Exposing AdFection (2026-10-15)",
+          "url": "https://citizenlab.ca/research/how-discover-tech-turned-targeted-ads-into-a-pipeline-for-spyware/"
+        }
+      ]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--80275ed1-64f2-58c7-97dc-9cdacac0ff5d",
+      "created": "2026-10-18T00:00:00.000Z",
+      "modified": "2026-10-18T18:29:47.000Z",
+      "created_by_ref": "identity--294ec63a-c449-5439-83fb-942185697747",
+      "revoked": true,
+      "name": "6a4875ae86131a594019dec4abd46ac6ba47e57a88287b814d07d929858fe3e5",
+      "description": "WITHDRAWN: this hash identifies the legitimate Marvin Test Solutions HW.sys / HW64.sys driver. Candiru has abused it, but it is not spyware and its presence alone does not establish compromise. The earlier sample classification and malware relationship were incorrect. Remove the prior detection rule. This object is a revocation record, not an active indicator.",
+      "pattern": "[file:hashes.'SHA-256' = '6a4875ae86131a594019dec4abd46ac6ba47e57a88287b814d07d929858fe3e5']",
+      "pattern_type": "stix",
+      "valid_from": "2026-10-18T00:00:00.000Z",
+      "labels": ["tier:vuln-driver", "source:avast-2022"],
+      "external_references": [
+        {
+          "source_name": "Avast / Gen",
+          "description": "The Return of Candiru (CVE-2022-2294), 2022",
+          "url": "https://www.gendigital.com/blog/insights/research/the-return-of-candiru-zero-days-in-the-middle-east"
+        }
+      ]
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--66b188af-2489-5b41-a84f-b90c34f5fc73",
+      "created": "2026-10-18T00:00:00.000Z",
+      "modified": "2026-10-18T18:29:47.000Z",
+      "revoked": true,
+      "description": "WITHDRAWN: presence of this legitimate driver does not indicate Candiru infection.",
+      "relationship_type": "indicates",
+      "source_ref": "indicator--80275ed1-64f2-58c7-97dc-9cdacac0ff5d",
+      "target_ref": "malware--75526ba0-abba-56bc-af06-770a39688ab3"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# Preserve the exact retrieved textual bytes recorded in PROVENANCE.json.
+*.yar -text
+LICENSE-*.txt -text

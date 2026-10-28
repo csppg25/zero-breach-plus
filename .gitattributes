@@ -1,0 +1,8 @@
+# Preserve published signature artifacts and signed manifest bytes.
+release-signatures/** -text
+release-signatures/** whitespace=cr-at-eol
+
+# Keep the downloadable IOC file byte-identical to its published checksum on
+# every platform, including Windows checkouts with core.autocrlf enabled.
+iocs/adfection_iocs.txt text eol=lf
+iocs/adfection_iocs.txt.sha256 text eol=lf

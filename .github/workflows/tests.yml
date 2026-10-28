@@ -1,0 +1,87 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The tool targets Windows first, but the browser and file checks run on
+        # macOS and Linux too, so the suite runs on all three.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run the test suite (standard library only, no install step)
+        working-directory: scan
+        run: python -m unittest discover -s tests -v
+      - name: Check source and download with no optional dependencies
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8'
+        run: python tools/release_check.py --e2e-only
+
+  smoke-scan:
+    timeout-minutes: 10
+    # Prove the scan itself runs end to end on real hardware for each OS, not
+    # just the unit tests. The runners have no real browser data, so the result
+    # is an honest "nothing found / with gaps" - the point is that it executes
+    # and exits cleanly (0 = nothing found) without crashing on that platform.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run a real --quick scan and require a clean exit
+        working-directory: scan
+        run: python -X utf8 adint-scan.py --quick --json scan.json
+
+  optional-patterns:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install the pinned official optional engine wheels
+        run: python -m pip install -r requirements-patterns.txt
+      - name: Test optional patterns and default checks using harmless fixtures
+        run: python -B -m unittest discover -s scan/tests -v
+      - name: End-to-end source and download release fixtures
+        if: matrix.python-version == '3.12'
+        run: python tools/release_check.py --e2e-only --require-patterns
+
+  reproducible-build:
+    # The build must be deterministic and the committed artifacts up to date, so
+    # anyone can rebuild zero-breach.py from source and get the published file.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Rebuild everything and fail on drift
+        run: python build/build.py --check
+      - name: Confirm two builds are byte-identical
+        run: |
+          python build/bundle.py . /tmp/a.py
+          python build/bundle.py . /tmp/b.py
+          cmp /tmp/a.py /tmp/b.py && echo "reproducible build OK"

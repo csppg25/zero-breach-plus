@@ -1,0 +1,31 @@
+{
+  "retrieved_utc": "2026-10-19T10:05:38.569504+00:00",
+  "scope": "Only public textual rules and license text retrieved. No samples, binaries, download-all endpoints or sample links fetched.",
+  "modifications": "Rules unchanged; Malpedia HTML entities decoded to displayed rule text. Original line endings retained in vendored bytes. Embedded strings are identical when UTF-8 encoded.",
+  "license_delivery": "DRL text reproduced; CC BY-SA 4.0 legalcode and overview hyperlinks supplied with author and original source in license notice.",
+  "malpedia_page_sha256": "a6edd8cebc4c4cbbeacf5f2566195c96a831a4d8f3497369f6ece3818db1c9a1",
+  "rules": [
+    {
+      "identifier": "MAL_DevilsTongue_HijackDll",
+      "author": "Microsoft Threat Intelligence Center (MSTIC)",
+      "license": "DRL 1.1",
+      "license_url": "https://raw.githubusercontent.com/Neo23x0/signature-base/master/LICENSE",
+      "source": "https://raw.githubusercontent.com/Neo23x0/signature-base/master/yara/apt_candiru.yar",
+      "filename": "apt_candiru.yar"
+    },
+    {
+      "identifier": "win_devilstongue_auto",
+      "author": "Felix Bilstein - yara-signator at cocacoding dot com",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source": "https://malpedia.caad.fkie.fraunhofer.de/details/win.devilstongue",
+      "filename": "win_devilstongue_auto.yar"
+    }
+  ],
+  "files_sha256": {
+    "apt_candiru.yar": "1a298e8d5cd766334da384ab4b06bccec2c8020c3d8dbb68eba159cab755307d",
+    "win_devilstongue_auto.yar": "1daaf0ceaa7d21b12869bc60492a9e089c6504be2ac26ddc508d25107e45fcb5",
+    "LICENSE-DRL-1.1.txt": "8a959b2413d0c83ca1b3ce9153076c649abf2e4bbfebbb493fb24c2074a1eb8a",
+    "LICENSE-CC-BY-SA-4.0.txt": "b013f21a44956c6d717f211990b450aeaa4d7266da4614ab8c386b479565296e"
+  }
+}

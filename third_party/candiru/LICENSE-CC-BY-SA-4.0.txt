@@ -1,0 +1,7 @@
+win_devilstongue_auto is licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+Author: Felix Bilstein - yara-signator at cocacoding dot com
+Original: https://malpedia.caad.fkie.fraunhofer.de/details/win.devilstongue
+License text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+License overview: https://creativecommons.org/licenses/by-sa/4.0/
+Rule retained unchanged, including its disclaimer and attribution. No endorsement is implied.
+The rule's separate third-party license applies to its verbatim embedded copy as well.
