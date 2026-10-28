@@ -20,7 +20,7 @@
 > in the single-file build. Optional Candiru patterns still need the pinned YARA-X engine;
 > see [pattern validation](DETECTION-UPGRADE.md). Default checks remain standard-library-only.
 
-[![tests](https://github.com/interplains/zero-breach/actions/workflows/tests.yml/badge.svg)](https://github.com/interplains/zero-breach/actions/workflows/tests.yml)
+[![tests](https://github.com/csppg25/zero-breach-plus/actions/workflows/tests.yml/badge.svg)](https://github.com/csppg25/zero-breach-plus/actions/workflows/tests.yml)
 
 A local, read-only scanner that checks a computer for traces of the **AdFection /
 Candiru** spyware campaign — the operation in which an ad-tech company used
