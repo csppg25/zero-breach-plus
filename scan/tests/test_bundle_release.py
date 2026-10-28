@@ -150,6 +150,80 @@ class TestDownloadedEntryPoint(unittest.TestCase):
         self.assertTrue(any("connection-records" in gap
                             for gap in doc["verdict"]["gaps"]))
 
+    # --- --self-check ------------------------------------------------------
+    # The download can verify its own integrity: it prints the SHA-256 of the
+    # file that is running and, if a SHA256SUMS.txt sits beside it, reports
+    # MATCH / MISMATCH. This hashes the built bundle itself (cls.bundle's path),
+    # so these run the real code path, not a mock of it.
+    def _self_check(self, extra=()):
+        b = self.bundle
+        out = io.StringIO()
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(patch.object(b, "_force_utf8_io", lambda: None))
+            stack.enter_context(contextlib.redirect_stdout(out))
+            stack.enter_context(contextlib.redirect_stderr(io.StringIO()))
+            code = b.main(["--self-check", "--no-pause"] + list(extra))
+        return code, out.getvalue()
+
+    def _bundle_sha256(self):
+        import hashlib
+        with open(self.bundle.__file__, "rb") as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+
+    def _sums_path(self):
+        return os.path.join(os.path.dirname(self.bundle.__file__),
+                            "SHA256SUMS.txt")
+
+    def test_self_check_prints_this_files_own_sha256_and_exits_clean(self):
+        sums = self._sums_path()
+        if os.path.exists(sums):
+            os.remove(sums)
+        code, text = self._self_check()
+        self.assertEqual(code, 0, "printing the hash is not a failure")
+        self.assertIn(self._bundle_sha256(), text,
+                      "the output must contain this file's real SHA-256")
+
+    def test_self_check_reports_match_against_a_correct_sums_file(self):
+        sums = self._sums_path()
+        name = os.path.basename(self.bundle.__file__)
+        with open(sums, "w", encoding="utf-8") as fh:
+            fh.write("{}  {}\n".format(self._bundle_sha256(), name))
+        self.addCleanup(lambda: os.path.exists(sums) and os.remove(sums))
+        code, text = self._self_check()
+        self.assertEqual(code, 0)
+        self.assertIn("MATCH", text)
+        self.assertNotIn("MISMATCH", text)
+
+    def test_self_check_flags_a_mismatching_sums_file_and_exits_nonzero(self):
+        sums = self._sums_path()
+        name = os.path.basename(self.bundle.__file__)
+        with open(sums, "w", encoding="utf-8") as fh:
+            fh.write("{}  {}\n".format("0" * 64, name))
+        self.addCleanup(lambda: os.path.exists(sums) and os.remove(sums))
+        code, text = self._self_check()
+        self.assertEqual(code, 1, "a tampered copy must exit non-zero")
+        self.assertIn("MISMATCH", text)
+
+    def test_self_check_never_opens_indicators_or_scans(self):
+        # Integrity is a pre-scan, read-only path: it must not load indicators
+        # or run any module, even if those would otherwise fire.
+        b = self.bundle
+        sums = self._sums_path()
+        if os.path.exists(sums):
+            os.remove(sums)
+
+        def must_not_load(*args, **kwargs):
+            raise AssertionError("--self-check loaded indicators")
+
+        with contextlib.ExitStack() as stack:
+            stack.enter_context(patch.object(b, "_load_embedded_iocs",
+                                             must_not_load))
+            stack.enter_context(patch.object(b, "_force_utf8_io", lambda: None))
+            stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+            stack.enter_context(contextlib.redirect_stderr(io.StringIO()))
+            code = b.main(["--self-check", "--no-pause"])
+        self.assertEqual(code, 0)
+
 
 class TestStixDriverWithdrawal(unittest.TestCase):
     DRIVER = "6a4875ae86131a594019dec4abd46ac6ba47e57a88287b814d07d929858fe3e5"

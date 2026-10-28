@@ -261,6 +261,67 @@ def _force_utf8_io():
             pass
 
 
+def _self_check(args):
+    """Print this file's SHA-256 and, when a SHA256SUMS.txt sits beside it, say
+    whether it matches - so a copy handed to someone can be verified on the
+    spot, cross-platform, without having to remember Get-FileHash or shasum.
+
+    This hashes the file that is actually running and nothing else. It cannot by
+    itself prove the file is the official one: a tampered copy would simply print
+    its own tampered hash. The assurance comes from the COMPARISON - against the
+    release's signed SHA256SUMS.txt, or the hash published in the release notes.
+    Read-only, offline, and it never scans - it prints and exits."""
+    import hashlib
+    here = os.path.abspath(__file__)
+    try:
+        with io.open(here, "rb") as fh:
+            digest = hashlib.sha256(fh.read()).hexdigest()
+    except OSError as exc:
+        print("could not read this file to hash it: {}".format(exc),
+              file=sys.stderr)
+        _hold(args)
+        return 1
+    print("file:    {}".format(here))
+    print("version: {}".format(__version__))
+    print("sha256:  {}".format(digest))
+
+    name = os.path.basename(here)
+    sums = os.path.join(os.path.dirname(here), "SHA256SUMS.txt")
+    expected = None
+    try:
+        with io.open(sums, encoding="utf-8") as fh:
+            for line in fh:
+                row = line.split()
+                # A coreutils-style line is "<hex>  <name>"; the name may carry a
+                # leading '*' (binary-mode marker). Match this file by its name.
+                if len(row) >= 2 and row[1].lstrip("*") == name:
+                    expected = row[0].lower()
+                    break
+    except OSError:
+        expected = None
+
+    print("")
+    if expected is None:
+        print("No SHA256SUMS.txt beside this file lists {}.".format(name))
+        print("Compare the sha256 above with the value published for this")
+        print("release, or put the release's SHA256SUMS.txt next to this file")
+        print("and run --self-check again.")
+        status = 0
+    elif expected == digest:
+        print("MATCH: this file equals the entry in SHA256SUMS.txt.")
+        print("For full assurance, verify SHA256SUMS.txt itself against its")
+        print(".asc signature (see SIGNING.md).")
+        status = 0
+    else:
+        print("MISMATCH: this file does NOT match SHA256SUMS.txt.")
+        print("  listed: {}".format(expected))
+        print("  this:   {}".format(digest))
+        print("Do not trust this copy. Re-download it from the official release.")
+        status = 1
+    _hold(args)
+    return status
+
+
 def main(argv=None):
     _force_utf8_io()
     p = argparse.ArgumentParser(
@@ -280,6 +341,9 @@ def main(argv=None):
                         "as clean.")
     p.add_argument("--no-pause", action="store_true",
                    help="do not wait for a keypress before exiting")
+    p.add_argument("--self-check", action="store_true",
+                   help="print this file's SHA-256 (and compare it to a "
+                        "SHA256SUMS.txt beside it), then exit without scanning")
     p.add_argument("--patterns", action="store_true",
                    help="experimental local Candiru file-pattern check; needs "
                         "Python 3.9+ and yara-x==1.21.0; no memory scan")
@@ -289,6 +353,12 @@ def main(argv=None):
     args = p.parse_args(sys.argv[1:] if argv is None else argv)
     if args.pattern_path and not args.patterns:
         p.error("--pattern-path requires --patterns")
+
+    # Integrity check first: it only reads and hashes this one file, so it must
+    # work even where a scan would not (old Python, locked-down host) and must
+    # never touch indicators, the registry or browser data.
+    if args.self_check:
+        return _self_check(args)
 
     if sys.version_info < (3, 8):
         print("This needs Python 3.8 or newer; this is {}.{}.".format(
